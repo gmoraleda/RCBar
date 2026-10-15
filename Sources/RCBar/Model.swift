@@ -7,9 +7,7 @@ func eventDelta(old: Double?, oldMonth: String?, new: Double, month: String) -> 
     return new - old
 }
 
-// iMovie's coin drop if installed; Apple doesn't ship one in /System/Library/Sounds.
-let cashSound = NSSound(contentsOfFile: "/Applications/iMovie.app/Contents/Resources/iLife Sound Effects/Foley/Coin Drop on Wood.caf", byReference: true)
-    ?? NSSound(named: "Glass")
+let cashSound = NSSound(named: "Glass")
 
 @MainActor final class Model: ObservableObject {
     @Published var title = "…"
@@ -78,7 +76,7 @@ let cashSound = NSSound(contentsOfFile: "/Applications/iMovie.app/Contents/Resou
                                       new: cur.value, month: month) {
                 defaults.set(delta, forKey: "eventDelta")
                 defaults.set(today, forKey: "eventDate")
-                if delta > 0 { cashSound?.play() }
+                if delta > 0, !defaults.bool(forKey: "muted") { cashSound?.play() }
             }
             defaults.set(cur.value, forKey: "baseline")
             defaults.set(month, forKey: "baselineMonth")
