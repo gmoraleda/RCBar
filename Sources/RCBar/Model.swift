@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 import ServiceManagement
 
 /// Delta to report as an event, or nil (first value, no change, or fiscal month rolled over).
@@ -6,6 +6,10 @@ func eventDelta(old: Double?, oldMonth: String?, new: Double, month: String) -> 
     guard let old, oldMonth == month, abs(new - old) >= 0.005 else { return nil }
     return new - old
 }
+
+// iMovie's coin drop if installed; Apple doesn't ship one in /System/Library/Sounds.
+let cashSound = NSSound(contentsOfFile: "/Applications/iMovie.app/Contents/Resources/iLife Sound Effects/Foley/Coin Drop on Wood.caf", byReference: true)
+    ?? NSSound(named: "Glass")
 
 @MainActor final class Model: ObservableObject {
     @Published var title = "…"
@@ -74,6 +78,7 @@ func eventDelta(old: Double?, oldMonth: String?, new: Double, month: String) -> 
                                       new: cur.value, month: month) {
                 defaults.set(delta, forKey: "eventDelta")
                 defaults.set(today, forKey: "eventDate")
+                if delta > 0 { cashSound?.play() }
             }
             defaults.set(cur.value, forKey: "baseline")
             defaults.set(month, forKey: "baselineMonth")
