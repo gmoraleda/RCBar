@@ -32,7 +32,7 @@ Save it to `~/.config/rcbar/config.json` (`chmod 600` it):
 { "apiKey": "sk_...", "projectId": "proj...", "currency": "EUR" }
 ```
 
-`projectId` and `currency` are optional. Without a `projectId` the app uses the first project the key can access, and `currency` defaults to EUR. Then pick **Refresh** (⌘R) in the menu. The app polls every 5 minutes.
+`projectId` and `currency` are optional. Without a `projectId` the app uses the first project the key can access, and `currency` defaults to EUR. Then pick **Refresh** (⌘R) in the menu. The app polls every 5 minutes. When a refresh fails (e.g. offline), it keeps the last amount with a ⚠︎ and refreshes as soon as the network is back.
 
 ## How it works
 

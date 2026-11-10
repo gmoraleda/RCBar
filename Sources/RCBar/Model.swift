@@ -1,4 +1,5 @@
 import AppKit
+import Network
 import ServiceManagement
 
 /// Delta to report as an event, or nil (first value, no change, or fiscal month rolled over).
@@ -14,8 +15,10 @@ let cashSound = NSSound(named: "Glass")
     @Published var lines: [String] = []
     @Published var error: String?
     @Published var updated: Date?
+    @Published var stale = false // last refresh failed; title still shows the previous value
     var projectId: String?
     var loading = false
+    let network = NWPathMonitor()
     let defaults = UserDefaults.standard
 
     @Published var launchAtLogin = SMAppService.mainApp.status == .enabled
@@ -26,10 +29,16 @@ let cashSound = NSSound(named: "Glass")
             defaults.set(true, forKey: "loginItemSet")
             setLaunchAtLogin(true)
         }
+        // Refresh as soon as connectivity returns instead of waiting for the next poll.
+        network.pathUpdateHandler = { path in
+            if path.status == .satisfied { Task { await self.refresh() } }
+        }
+        network.start(queue: .main)
         Task {
             while true {
                 await refresh()
-                try? await Task.sleep(nanoseconds: 300 * 1_000_000_000)
+                // Retry sooner after a failure, e.g. a request that died while the network was coming back.
+                try? await Task.sleep(nanoseconds: (error == nil ? 300 : 60) * 1_000_000_000)
             }
         }
     }
@@ -94,10 +103,11 @@ let cashSound = NSSound(named: "Glass")
                 lines.append("No new events since launch")
             }
             error = nil
+            stale = false
             updated = today
         } catch {
-            self.error = (error as? Failure)?.text ?? "\(error)"
-            title = "RC error"
+            self.error = (error as? Failure)?.text ?? (error as? URLError)?.localizedDescription ?? "\(error)"
+            if updated == nil { title = "RC error" } else { stale = true }
         }
     }
 }

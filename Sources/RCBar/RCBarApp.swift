@@ -22,7 +22,7 @@ struct RCBarApp: App {
             Button("Open RevenueCat dashboard") { NSWorkspace.shared.open(URL(string: "https://app.revenuecat.com")!) }
             Button("Quit") { NSApp.terminate(nil) }.keyboardShortcut("q")
         } label: {
-            Text(model.title)
+            Text(model.stale ? "\(model.title) ⚠︎" : model.title)
         }
     }
 }
